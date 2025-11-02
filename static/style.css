@@ -6,7 +6,7 @@ body {
 }
 
 header {
-    background: #35424a;
+    background: #032744;
     color: #ffffff;
     padding: 10px 0;
     text-align: center;
@@ -23,7 +23,8 @@ h1 {
 }
 
 footer {
-    background: #35424a;
+    background: #032744;
+;
     color: #ffffff;
     text-align: center;
     padding: 10px 0;
@@ -33,10 +34,14 @@ footer {
 }
 
 a {
-    color: #35424a;
+    color: #f2f4f6;
     text-decoration: none;
 }
 
 a:hover {
     text-decoration: underline;
+}
+
+.navbar-nav .nav-link {
+    color: #fff !important;
 }
