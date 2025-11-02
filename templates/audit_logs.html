@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2>Audit Logs</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">User ID</th>
+                    <th scope="col">Action</th>
+                    <th scope="col">Table Name</th>
+                    <th scope="col">Record ID</th>
+                    <th scope="col">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ log.user_id }}</td>
+                    <td>{{ log.action }}</td>
+                    <td>{{ log.table_name }}</td>
+                    <td>{{ log.record_id }}</td>
+                    <td>{{ log.details }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

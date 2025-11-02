@@ -1,20 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>My Flask App</title>
-</head>
-<body>
-    <header>
-        <h1>Welcome to My Flask App</h1>
-    </header>
-    <main>
-        <p>This is the main page of the application.</p>
-    </main>
-    <footer>
-        <p>&copy; 2023 My Flask App</p>
-    </footer>
-</body>
-</html>
+{% extends "layout.html" %}
+
+{% block title %}
+Christchurch Hospital - Home
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="col">
+        <div class="col-md-6 mb-4 mt-5">
+            <h2>Patients' Portal</h2>
+            <p>Access your medical records, appointments, and more.</p>
+            <a href="{{ url_for('patients_login') }}" class="btn btn-primary">Go to Patients' Portal</a>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h2>Surgeons' Portal</h2>
+            <p>Manage your schedule, patient information, and surgical procedures.</p>
+            <a href="{{ url_for('surgeons_login') }}" class="btn btn-primary">Go to Surgeons' Portal</a>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h2>Admin Portal</h2>
+            <p>Administrative login for managing access control.</p>
+            <a href="{{ url_for('admin_login') }}" class="btn btn-primary">Go to Admin Portal</a>
+        </div>
+        <div class="col-md-6 mb-4">
+            <h2>Secretary Portal</h2>
+            <p>Access secretary functionalities and manage patient records.</p>
+            <a href="{{ url_for('secretary_login') }}" class="btn btn-primary">Go to Secretary Portal</a>
+    </div>
+{% endblock %}

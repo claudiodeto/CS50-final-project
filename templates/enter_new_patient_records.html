@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block title %}Update Surgical Records{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4>Update Surgical Records</h4>
+                </div>
+                <div class="card-body">
+                    <form class="row g-3" method="POST">
+                        <div class="form-group col-md-12">
+                            <label for="patient_NHI">Patient NHI</label>
+                            <input type="text" class="form-control" id="patient_NHI" name="patient_NHI" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="patient_first_name">First Name</label>
+                            <input type="text" class="form-control" id="patient_first_name" name="patient_first_name" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="patient_last_name">Last Name</label>
+                            <input type="text" class="form-control" id="patient_last_name" name="patient_last_name" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="gender">Gender</label>
+                            <select class="form-control" id="gender" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="date_of_birth">Date of Birth</label>
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label for="contact_info">Contact Information</label>
+                            <input type="text" class="form-control" id="contact_info" name="contact_info">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="emergency_contact_name">Emergency Contact Name</label>
+                            <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" >
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="emergency_contact_phone">Emergency Contact Phone</label>
+                            <input type="text" class="form-control" id="emergency_contact_phone" name="emergency_contact_phone" >
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label for="medical_history">Medical History</label>
+                            <textarea class="form-control" id="medical_history" name="medical_history" rows="3" ></textarea>
+                        </div>
+                        <div>
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div>
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Records</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

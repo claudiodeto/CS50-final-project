@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Christchurch Hospital - Search for Patients' records
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="col">
+        <div class="col-md-6 mb-4 mt-5">
+            <h2>Search for Patients' Records</h2>
+        </div>
+        <div class="col-md-6 mb-4">
+            <p>Search for patients</p>
+            <form method="POST">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="NHI" placeholder="Enter patient NHI">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="first_name" placeholder="Enter patient first name">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="last_name" placeholder="Enter patient last name">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="date_of_birth" placeholder="Enter patient date of birth">
+                </div>      
+                <button type="submit" class="btn btn-primary mt-2">Search</button>
+            </form>
+           
+        </div>
+    </div>
+</div>
+{% if patients %}
+    <h3>Search Results:</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>NHI</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
+                <th>Contact Info</th>
+                <th>Emergency Contact Name</th>
+                <th>Emergency Contact Phone</th>
+                <th>Medical History</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.NHI }}</td>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.gender }}</td>
+                <td>{{ patient.date_of_birth }}</td>
+                <td>{{ patient.contact_info }}</td>
+                <td>{{ patient.emergency_contact_name }}</td>
+                <td>{{ patient.emergency_contact_phone }}</td>
+                <td>{{ patient.medical_history }}</td>
+                <td><button type='button' class='btn btn-secondary' onclick="window.location.href='{{ url_for('patients_records', patient_id=patient.id) }}'">Select</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No patients found.</p>
+{% endif %}
+{% endblock %}  

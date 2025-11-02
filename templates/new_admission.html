@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+{% block title %}New Admission{% endblock %}
+{% block content %}
+<div class="container mt-4 mx-5">
+    <!-- Selected Patient's Information -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>NHI</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
+                <th>Contact Info</th>
+                <th>Emergency Contact Name</th>
+                <th>Emergency Contact Phone</th>
+                <th>Medical History</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ patient.NHI }}</td>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.gender }}</td>
+                <td>{{ patient.date_of_birth }}</td>
+                <td>{{ patient.contact_info }}</td>
+                <td>{{ patient.emergency_contact_name }}</td>
+                <td>{{ patient.emergency_contact_phone }}</td>
+                <td>{{ patient.medical_history }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Form to add a new admission -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4>New Admission</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="surgeon_id" class="form-label">Select Surgeon:</label>
+                                {% if surgeons %}
+                                    <select class="form-control" id="surgeon_id" name="surgeon_id" required>
+                                        <option value="">Select Surgeon</option>
+                                        {% for s in surgeons %}
+                                            <option value="{{ s.id }}">{{ s.first_name }} {{ s.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% else %}
+                                    <input type="text" class="form-control" value="{{ surgeon.first_name }} {{ surgeon.last_name }}" disabled>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="admission_date" class="form-label">Admission Date</label>
+                                <input type="date" class="form-control" id="admission_date" name="admission_date" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="discharge_date" class="form-label">Discharge Date</label>
+                                <input type="date" class="form-control" id="discharge_date" name="discharge_date">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="reason" class="form-label">Reason for Admission</label>
+                                <textarea class="form-control" id="reason" name="reason" rows="2" required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="admitted_from" class="form-label">Admitted From</label>
+                                <select class="form-control" id="admitted_from" name="admitted_from" required>
+                                    <option value="">Select Option</option>
+                                    <option value="ER">ER</option>
+                                    <option value="Clinic">Clinic</option>
+                                    <option value="Referral">Referral</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="discharged_to" class="form-label">Discharged To</label>
+                                <select class="form-control" id="discharged_to" name="discharged_to">
+                                    <option value="">Select Option</option>
+                                    <option value="Home">Home</option>
+                                    <option value="Rehab">Rehab</option>
+                                    <option value="Nursing Home">Nursing Home</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col text-end">
+                                <button type="submit" class="btn btn-primary">Add Admission</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+{% block title %}Edit Admission{% endblock %}
+{% block content %}
+<div class="container mt-4 mx-5">
+    <!-- Selected Patient's Information -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>NHI</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
+                <th>Contact Info</th>
+                <th>Emergency Contact Name</th>
+                <th>Emergency Contact Phone</th>
+                <th>Medical History</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ patient.NHI }}</td>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.gender }}</td>
+                <td>{{ patient.date_of_birth }}</td>
+                <td>{{ patient.contact_info }}</td>
+                <td>{{ patient.emergency_contact_name }}</td>
+                <td>{{ patient.emergency_contact_phone }}</td>
+                <td>{{ patient.medical_history }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Form to edit an admission -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h4>Edit admission</h4>
+                    </div>
+                    <div class="card-body">
+                        <form class="row g-3" method="POST">
+                            <div class="col-group col-md-6">
+                                <label for="surgeon_id">Select Surgeon:</label>
+                                {% if surgeons %}
+                                    <select class="form-control" id="surgeon_id" name="surgeon_id" required>
+                                        <option value="">Select Surgeon</option>
+                                        {% for s in surgeons %}
+                                            <option value="{{ s.id }}" {% if s.id == surgeon.id %}selected{% endif %}>{{ s.first_name }} {{ s.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% else %}
+                                    <input type="text" class="form-control" value="{{ surgeon.first_name }} {{ surgeon.last_name }}" disabled>
+                                {% endif %}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="admission_date">Admission Date</label>
+                                <input type="date" class="form-control" id="admission_date" name="admission_date"
+                                    value="{{ admission.admission_date.strftime('%Y-%m-%d') if admission.admission_date else '' }}" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="discharge_date">Discharge Date</label>
+                                <input type="date" class="form-control" id="discharge_date" name="discharge_date"
+                                    value="{{ admission.discharge_date.strftime('%Y-%m-%d') if admission.discharge_date else '' }}">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="reason">Reason for Admission</label>
+                                <textarea class="form-control" id="reason" name="reason" rows="3" required>{{ admission.reason }}</textarea>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="admitted_from">Admitted From</label>
+                                <select class="form-control" id="admitted_from" name="admitted_from" required>
+                                    <option value="">Select Option</option>
+                                    <option value="ER" {% if admission.admitted_from == "ER" %}selected{% endif %}>ER</option>
+                                    <option value="Clinic" {% if admission.admitted_from == "Clinic" %}selected{% endif %}>Clinic</option>
+                                    <option value="Referral" {% if admission.admitted_from == "Referral" %}selected{% endif %}>Referral</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="discharged_to">Discharged To</label>
+                                <select class="form-control" id="discharged_to" name="discharged_to">
+                                    <option value="">Select Option</option>
+                                    <option value="Home" {% if admission.discharge_to == "Home" %}selected{% endif %}>Home</option>
+                                    <option value="Rehab" {% if admission.discharge_to == "Rehab" %}selected{% endif %}>Rehab</option>
+                                    <option value="Nursing Home" {% if admission.discharge_to == "Nursing Home" %}selected{% endif %}>Nursing Home</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Admission</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

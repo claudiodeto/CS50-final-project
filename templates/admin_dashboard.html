@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Christchurch Hospital - Admin Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Welcome to the Admin Dashboard</h2>
+                    <p class="mb-4">Here you can manage users, patients, and oversee hospital operations.</p>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <a href="{{ url_for('enter_new_patient_records') }}" class="btn btn-primary">Add Patient Record</a>
+                        <a href="{{ url_for('add_surgeon') }}" class="btn btn-primary">Add Surgeon</a>
+                        <a href="{{ url_for('add_secretary') }}" class="btn btn-primary">Add Secretary</a>
+                        <a href="{{ url_for('search_patients_records') }}" class="btn btn-secondary">Search Patients' Records</a>
+                        <a href="{{ url_for('search_appointments') }}" class="btn btn-secondary">Search Appointments</a>
+                        <a href="{{ url_for('appointments_list') }}" class="btn btn-secondary">View All Appointments</a>
+                        <a href="{{ url_for('audit_logs') }}" class="btn btn-warning">View Audit Logs</a>
+                        <a href="{{ url_for('allowed_users') }}" class="btn btn-warning">Manage Allowed Users</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

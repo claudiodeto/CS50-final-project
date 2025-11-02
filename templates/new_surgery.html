@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block title %}New Surgery{% endblock %}
+{% block content %}
+<div class="container mt-4 mx-5">
+    <!-- Selected Patient's Information -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>NHI</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
+                <th>Contact Info</th>
+                <th>Emergency Contact Name</th>
+                <th>Emergency Contact Phone</th>
+                <th>Medical History</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ patient.NHI }}</td>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.gender }}</td>
+                <td>{{ patient.date_of_birth }}</td>
+                <td>{{ patient.contact_info }}</td>
+                <td>{{ patient.emergency_contact_name }}</td>
+                <td>{{ patient.emergency_contact_phone }}</td>
+                <td>{{ patient.medical_history }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Form to add a new surgery -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h4>New Surgery</h4>
+                    </div>
+                    <div class="card-body">
+                        <form class="row g-3" method="POST">
+                            <div class="form-group col-md-6">
+                                <label for="surgery_date">Surgery Date</label>
+                                <input type="date" class="form-control" id="surgery_date" name="surgery_date" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="surgery_type">Surgery Type</label>
+                                <input type="text" class="form-control" id="surgery_type" name="surgery_type" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="surgery_outcome">Surgery Outcome</label>
+                                <input type="text" class="form-control" id="surgery_outcome" name="surgery_outcome" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="complication">Complication</label>
+                                <input type="text" class="form-control" id="complication" name="complication">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="complication_date">Complication date</label>
+                                <input type="date" class="form-control" id="complication_date" name="complication_date">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Records</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+{% endblock %}

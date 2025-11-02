@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+ 
+ {% block title %}Surgical logbook {% endblock %}
+ 
+ {% block content %}
+ <div class="container mt-4">
+     <h2>Surgical Logbook</h2>
+     <table class="table table-striped">
+         <thead>
+             <tr>
+                 <th>Patient NHI</th>
+                 <th>Procedure</th>
+                 <th>Date</th>
+                 <th>Surgeon</th>
+                 <th>Outcome</th>
+                 <th>Complications</th>
+             </tr>
+         </thead>
+         <tbody>
+             {% for surgery in surgeries %}
+             <tr>
+                 <td>{{ surgery.patient.NHI }}</td>
+                 <td>{{ surgery.surgery_type }}</td>
+                 <td>{{ surgery.surgery_date }}</td>
+                 <td>{{ surgery.surgeon.first_name }} {{ surgery.surgeon.last_name }}</td>
+                 <td>{{ surgery.outcome }}</td>
+                 <td>
+                     {% if complications[surgery.id] %}
+                         {{ complications[surgery.id]|length }} complication {{ "s" if complications[surgery.id]|length > 1 else "" }}<br>
+                     {% else %}
+                         No complications
+                     {% endif %}
+             </tr>
+             {% endfor %}
+         </tbody>
+     </table>
+ </div>
+ {% endblock %}

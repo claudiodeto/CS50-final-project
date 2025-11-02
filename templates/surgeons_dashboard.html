@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Christchurch Hospital - Surgeons' Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Welcome to the Surgeons' Dashboard</h2>
+                    <p class="mb-4">Here you can manage your patients, view appointments, and update surgical records.</p>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <a href="{{ url_for('search_patients_records') }}" class="btn btn-primary">Search Patients' Records</a>
+                        <a href="{{ url_for('surgical_logbook') }}" class="btn btn-primary">View Surgical Logbook</a>
+                        <a href="{{ url_for('appointments_list') }}" class="btn btn-secondary">View All Appointments</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

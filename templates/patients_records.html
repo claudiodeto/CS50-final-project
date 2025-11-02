@@ -1,0 +1,260 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Christchurch Hospital - View Patients' Records
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mx-5">
+
+    <!-- Patient Information Table -->
+    <table class="table table-striped mb-5">
+        <thead>
+            <tr>
+                <th>NHI</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
+                <th>Contact Info</th>
+                <th>Emergency Contact Name</th>
+                <th>Emergency Contact Phone</th>
+                <th>Medical History</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ patient.NHI }}</td>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.gender }}</td>
+                <td>{{ patient.date_of_birth }}</td>
+                <td>{{ patient.contact_info }}</td>
+                <td>{{ patient.emergency_contact_name }}</td>
+                <td>{{ patient.emergency_contact_phone }}</td>
+                <td>{{ patient.medical_history }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% if session.get("is_admin") %}
+        <a href="{{ url_for('edit_patient', patient_id=patient.id) }}" class="btn btn-secondary mb-5">Edit Username, Contact & Emergency Info</a>
+    {% elif session.get("surgeon_id") %}
+        <a href="{{ url_for('edit_patient', patient_id=patient.id) }}" class="btn btn-secondary mb-5">Edit Medical History</a>
+    {% endif %}
+
+    <!-- Diagnoses Section -->
+    <div class="mb-5">
+        <h3>Diagnoses</h3>
+        {% if diagnoses %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Diagnosis</th>
+                    <th>Surgeon</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for diagnosis in diagnoses %}
+                <tr>
+                    <td>{{ diagnosis.diagnosis_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ diagnosis.diagnosis }}</td>
+                    <td>{{ diagnosis.surgeon.first_name }} {{ diagnosis.surgeon.last_name }}</td>
+                    <td>
+                        {% if session.get("surgeon_id") == diagnosis.surgeon.id %}
+                            <a href='{{ url_for("edit_diagnosis", diagnosis_id=diagnosis.id) }}' class="btn btn-sm btn-warning">Update</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No diagnoses found.</p>
+        {% endif %}
+        {% if session.get("surgeon_id") %}
+            <a href='{{ url_for("new_diagnosis", patient_id=patient.id) }}' class="btn btn-secondary">New diagnosis</a>
+        {% endif %}
+    </div>
+
+    <!-- Appointments Section -->
+    <div class="mb-5">
+        <h3>Appointments</h3>
+        {% if appointments %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Surgeon</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr {% if appointment.appointment_date >= now %}class="table-success"{% endif %}>
+                    <td>
+                        {% if appointment.appointment_date > now %}
+                            {{ appointment.appointment_date.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                            {{ appointment.appointment_date.strftime('%Y-%m-%d') }}
+                        {% endif %}
+                    </td>
+                    <td>{{ appointment.surgeon.first_name }} {{ appointment.surgeon.last_name }}</td>
+                    <td>{{ appointment.reason }}</td>
+                    <td>
+                        {% if appointment.appointment_date >= now %}
+                            <span class="badge bg-success">Upcoming</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Past</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if appointment.appointment_date >= now %}
+                            {% if session.get("secretary_id") %}
+                                <a href='{{ url_for("edit_appointment", appointment_id=appointment.id) }}' class="btn btn-sm btn-warning">Update</a>
+                                <form action="{{ url_for('delete_appointment', appointment_id=appointment.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this appointment?');">Delete</button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            {% if session.get("surgeon_id") == appointment.surgeon.id %}
+                                <a href='{{ url_for("edit_appointment", appointment_id=appointment.id) }}' class="btn btn-sm btn-warning">Update</a>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No appointments found.</p>
+        {% endif %}
+        {% if session.get("surgeon_id") or session.get("secretary_id") %}
+        <a href='{{ url_for("new_appointment", patient_id=patient.id) }}' class="btn btn-secondary">New appointment</a>
+        {% endif %}
+    </div>
+
+    <!-- Admissions Section -->
+    <div class="mb-5">
+        <h3>Admissions</h3>
+        {% if admissions %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Admission Date</th>
+                    <th>Discharge Date</th>
+                    <th>Reason</th>
+                    <th>Surgeon</th>
+                    <th>Admitted from</th>
+                    <th>Discharge Destination</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for admission in admissions %}
+                <tr {% if admission.admission_date >= now %}class="table-success"{% endif %}>
+                    <td>{{ admission.admission_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if admission.discharge_date %}
+                            {{ admission.discharge_date.strftime('%Y-%m-%d') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ admission.reason }}</td>
+                    <td>{{ admission.surgeon.first_name }} {{ admission.surgeon.last_name }}</td>
+                    <td>{{ admission.admitted_from }}</td>
+                    <td>{{ admission.discharged_to }}</td>
+                    <td>
+                        {% if admission.admission_date >= now %}
+                            <span class="badge bg-success">Upcoming</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Past</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if admission.admission_date >= now %}
+                            {% if session.get("secretary_id") %}
+                            <div class="d-flex gap-2 align-items-center">
+                                <a href='{{ url_for('edit_admission', admission_id=admission.id) }}' class="btn btn-sm btn-warning">Update</a>
+                                <form action="{{ url_for('delete_admission', admission_id=admission.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this admission?');">Delete</button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            {% if session.get("surgeon_id") == admission.surgeon.id  %}
+                                <a href='{{ url_for('edit_admission', admission_id=admission.id) }}' class="btn btn-sm btn-warning">Update</a>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No admissions found.</p>
+        {% endif %}
+        {% if session.get("surgeon_id") or session.get("secretary_id") %}
+        <a href='{{ url_for('new_admission', patient_id=patient.id) }}' class="btn btn-secondary">New admission</a>
+        {% endif %}
+    </div>
+
+    <!-- Surgeries Section -->
+    <div class="mb-5">
+        <h3>Surgeries</h3>
+        {% if surgeries %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Surgeon</th>
+                    <th>Outcome</th>
+                    <th colspan="2">Complication</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for surgery in surgeries %}
+                <tr>
+                    <td>{{ surgery.surgery_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ surgery.surgery_type }}</td>
+                    <td>{{ surgery.surgeon.first_name }} {{ surgery.surgeon.last_name }}</td>
+                    <td>{{ surgery.outcome }}</td>
+                    <td colspan="2">
+                        {% if complications[surgery.id] %}
+                            {{ complications[surgery.id]|length }} complication{{ complications[surgery.id]|length > 1 and 's' or '' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if session.get("surgeon_id") == surgery.surgeon.id %}
+                            <a href='{{ url_for('edit_surgery', surgery_id=surgery.id) }}' class="btn btn-sm btn-warning">Update</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if complications[surgery.id] %}
+                    {% for comp in complications[surgery.id] %}
+                    <tr>
+                        <td></td>
+                        <td colspan="2"><strong>Complication:</strong> {{ comp.description }}</td>
+                        <td colspan="2"><strong>Date:</strong> {{ comp.complication_date.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No surgeries found.</p>
+        {% endif %}
+        {% if session.get("surgeon_id") %}
+        <a href='{{ url_for('new_surgery', patient_id=patient.id) }}' class="btn btn-secondary">New surgery</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

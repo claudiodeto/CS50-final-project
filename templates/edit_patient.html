@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% block title %}Edit Patient Contact & Emergency Info{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4>Edit Patient Contact & Emergency Info</h4>
+                </div>
+                <div class="card-body">
+                    <form class="row g-3" method="POST">
+                        <div class="form-group col-md-12">
+                            <label for="patient_NHI">Patient NHI</label>
+                            {% if session.get("is_admin") %}
+                                <input type="text" class="form-control" id="patient_NHI" name="patient_NHI" value="{{ patient.NHI }}" >
+                            {% elif session.get("surgeon_id") %}
+                                <input type="text" class="form-control" id="patient_NHI" name="patient_NHI" value="{{ patient.NHI }}" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="patient_first_name">First Name</label>
+                            {% if session.get("is_admin") %}
+                                <input type="text" class="form-control" id="patient_first_name" name="patient_first_name" value="{{ patient.first_name }}" >
+                            {% elif session.get("surgeon_id") %}
+                                <input type="text" class="form-control" id="patient_first_name" name="patient_first_name" value="{{ patient.first_name }}" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="patient_last_name">Last Name</label>
+                            {% if session.get("is_admin") %}
+                                <input type="text" class="form-control" id="patient_last_name" name="patient_last_name" value="{{ patient.last_name }}" >
+                            {% elif session.get("surgeon_id") %}
+                                <input type="text" class="form-control" id="patient_last_name" name="patient_last_name" value="{{ patient.last_name }}" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="gender">Gender</label>
+                            {% if session.get("is_admin") %}
+                                <input type="text" class="form-control" id="gender" name="gender" value="{{ patient.gender }}" >
+                            {% elif session.get("surgeon_id") %}
+                                <input type="text" class="form-control" id="gender" name="gender" value="{{ patient.gender }}" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="date_of_birth">Date of Birth</label>
+                            {% if session.get("is_admin") %}
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ patient.date_of_birth }}" >
+                            {% elif session.get("surgeon_id") %}
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ patient.date_of_birth }}" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label for="contact_info">Contact Information</label>
+                            {% if session.get("is_admin") %}
+                                <input type="text" class="form-control" id="contact_info" name="contact_info" value="{{ patient.contact_info }}">
+                            {% elif session.get("surgeon_id") %}
+                                <input type="text" class="form-control" id="contact_info" name="contact_info" value="{{ patient.contact_info }}" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="emergency_contact_name">Emergency Contact Name</label>
+                            {% if session.get("is_admin") %}
+                                <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" value="{{ patient.emergency_contact_name }}">
+                            {% elif session.get("surgeon_id") %}
+                                <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" value="{{ patient.emergency_contact_name }}" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="emergency_contact_phone">Emergency Contact Phone</label>
+                            {% if session.get("is_admin") %}
+                                <input type="text" class="form-control" id="emergency_contact_phone" name="emergency_contact_phone" value="{{ patient.emergency_contact_phone }}">
+                            {% elif session.get("surgeon_id") %}
+                                <input type="text" class="form-control" id="emergency_contact_phone" name="emergency_contact_phone" value="{{ patient.emergency_contact_phone }}" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label for="medical_history">Medical History</label>
+                            {% if session.get("is_admin") %}
+                                <textarea class="form-control" id="medical_history" name="medical_history" readonly rows="3">{{ patient.medical_history }}</textarea>
+                            {% elif session.get("surgeon_id") %}
+                                <textarea class="form-control" id="medical_history" name="medical_history" rows="3">{{ patient.medical_history }}</textarea>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if session.get("is_admin") %}
+                                <label for="username">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" value="{{ patient.username }}">
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if session.get("is_admin") %}
+                                <label for="new_password">New Password (leave blank to keep current)</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password">
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block title %}Edit Diagnosis{% endblock %}
+{% block content %}
+<div class="container mt-4 mx-5">
+    <!-- Edit diagnosis -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>NHI</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
+                <th>Contact Info</th>
+                <th>Emergency Contact Name</th>
+                <th>Emergency Contact Phone</th>
+                <th>Medical History</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ patient.NHI }}</td>
+                <td>{{ patient.first_name }}</td>
+                <td>{{ patient.last_name }}</td>
+                <td>{{ patient.gender }}</td>
+                <td>{{ patient.date_of_birth }}</td>
+                <td>{{ patient.contact_info }}</td>
+                <td>{{ patient.emergency_contact_name }}</td>
+                <td>{{ patient.emergency_contact_phone }}</td>
+                <td>{{ patient.medical_history }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Form to edit a diagnosis -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h4>Edit diagnosis</h4>
+                    </div>
+                    <div class="card-body">
+                        <form class="row g-3" method="POST">
+                            <div class="form-group col-md-6">
+                                <label for="diagnosis_date">Diagnosis Date</label>
+                                <input type="date" class="form-control" id="diagnosis_date" name="diagnosis_date"
+                                value="{{ diagnosis.diagnosis_date }}" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="diagnosis_description">Diagnosis</label>
+                                <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" required>{{ diagnosis.diagnosis }}</textarea>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <label for="diagnosis_notes">Additional Notes (optional)</label>
+                                <textarea class="form-control" id="diagnosis_notes" name="notes" rows="3">{{ diagnosis.notes }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Records</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+{% endblock %}
