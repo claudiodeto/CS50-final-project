@@ -70,11 +70,14 @@ def admin_login():
             return "Must provide username and password", 403
         
         # Authenticate admin user
-
         admin = Admin.query.filter_by(username=username).first()
 
-        # Only allow login if username is 'admin'
-        if admin and username == "admin" and check_password_hash(admin.password_hash, password):
+        # Check if admin exists and password is correct
+        if admin == None or not check_password_hash(admin.password_hash, password):
+            flash("Invalid credentials", "danger")
+            return render_template("admin_login.html")
+        
+        else:
             session["is_admin"] = True
 
             # Log the admin in
@@ -93,9 +96,7 @@ def admin_login():
             db.session.commit()
 
             return redirect("/admin_dashboard")
-        else:
-
-            return "Invalid credentials", 403
+   
 
     # User reached route via GET (as by clicking a link or via redirect)
     return render_template("admin_login.html")
@@ -103,18 +104,27 @@ def admin_login():
 
 # Patient login route
 @app.route("/patients_login", methods=["GET", "POST"])
+
 def patients_login():
+    # Forget any user id
+    session.clear()
+
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+
+        # check if username and password are provided
         if not username or not password:
             return "Must provide username and password", 403
 
         # Authenticate user
         user = Patient.query.filter_by(username=username).first()
 
+        # Check if user exists and password is correct
         if user == None or not check_password_hash(user.password_hash, password):
-            return render_template("patients_login.html", error="Invalid username or password")
+            flash("Invalid credentials", "danger")
+            return render_template("patients_login.html")
 
         # Log the user in
         session["patient_id"] = user.id
@@ -138,12 +148,14 @@ def patients_login():
         db.session.commit()
 
         return redirect("/patients_records/{}".format(user.id))
+    
     # User reached route via GET (as by clicking a link or via redirect)
     return render_template("patients_login.html")
 
 
 # Secretary login route
 @app.route("/secretary_login", methods=["GET", "POST"])
+
 def secretary_login():
     # Forget any user id
     session.clear()
@@ -152,14 +164,19 @@ def secretary_login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+
+        # Check if username and password are provided
         if not username or not password:
-            return "Must provide username and password", 403
+            flash("Must provide username and password", "danger")
+            return render_template("secretary_login.html")
 
         # Authenticate user
         user = Secretary.query.filter_by(username=username).first()
 
+        # Check if user exists and password is correct
         if user == None or not check_password_hash(user.password_hash, password):
-            return render_template("secretary_login.html", error="Invalid username or password")
+            flash("Invalid credentials", "danger")
+            return render_template("secretary_login.html")
 
         # Log the user in
         session["secretary_id"] = user.id
@@ -190,8 +207,8 @@ def secretary_login():
 
 # Surgeon login route
 @app.route("/surgeons_login", methods=["GET", "POST"])
-def surgeons_login():
 
+def surgeons_login():
     # Forget any user id
     session.clear()
 
@@ -199,14 +216,19 @@ def surgeons_login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+
+        # Check if username and password are provided
         if not username or not password:
-            return "Must provide username and password", 403
+            flash("Must provide username and password", "danger")
+            return render_template("surgeons_login.html")
 
         # Authenticate user
         user = Surgeon.query.filter_by(username=username).first()
 
+        # Check if user exists and password is correct
         if user == None or not check_password_hash(user.password_hash, password):
-            return render_template("surgeons_login.html", error="Invalid username or password")
+            flash("Invalid credentials", "danger")
+            return render_template("surgeons_login.html")
 
         # Check if user needs to set a password
         if user.needs_password:
