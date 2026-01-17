@@ -21,7 +21,7 @@
              <tr>
                  <td>{{ surgery.patient.NHI }}</td>
                  <td>{{ surgery.surgery_type }}</td>
-                 <td>{{ surgery.surgery_date }}</td>
+                 <td>{{ surgery.surgery_date.strftime('%Y-%m-%d') if surgery.surgery_date else '' }}</td>
                  <td>{{ surgery.surgeon.first_name }} {{ surgery.surgeon.last_name }}</td>
                  <td>{{ surgery.outcome }}</td>
                  <td>

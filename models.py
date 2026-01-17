@@ -2,6 +2,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
 
+
 db = SQLAlchemy()
 
 # Database models
@@ -116,3 +117,12 @@ class AuditLog(db.Model):
     record_id = db.Column(db.Integer)  # ID of the affected record
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     details = db.Column(db.Text)  # Optional: what changed
+
+# Model for password reset tokens
+class PasswordResetToken(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(255), unique=True, nullable=False)
+    user_type = db.Column(db.String(20), nullable=False)  # 'surgeon', 'patient', etc.
+    user_id = db.Column(db.Integer, nullable=False)
+    expires = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

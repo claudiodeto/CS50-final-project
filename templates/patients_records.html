@@ -7,6 +7,13 @@ Christchurch Hospital - View Patients' Records
 {% block content %}
 <div class="container mt-4 mx-5">
 
+    <!-- change password option for patients only -->
+    {% if session.get("patient_id") %}
+    <div class="mb-4">
+        <a href="/change_password" class="btn btn-outline-primary">Change Password</a>
+    </div>
+    {% endif %}
+
     <!-- Patient Information Table -->
     <table class="table table-striped mb-5">
         <thead>

@@ -18,7 +18,7 @@
             {% for appointment in appointments %}
                 <tr>
                     <td>{{ appointment.id }}</td>
-                    <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+                    <td>{{ appointment.patient.NHI }} {{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
                     <td>{{ appointment.surgeon.first_name }} {{ appointment.surgeon.last_name }}</td>
                     <td>{{ appointment.appointment_date.strftime('%Y-%m-%d') }}</td>
                     <td>{{ appointment.appointment_date.strftime('%H:%M') }}</td>
