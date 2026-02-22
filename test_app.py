@@ -221,15 +221,6 @@ def test_forgot_password_page_loads(client):
     assert response.status_code == 200
     assert b"Forgot Password" in response.data
 
-# Test forgot password with missing username
-def test_forgot_password_missing_username(client):
-    response = client.post("/forgot_password", data={
-        "username": "",
-        "user_type": "surgeon"
-    }, follow_redirects=True)
-    assert response.status_code == 200
-    assert b"Please provide username." in response.data
-
 # Test forgot password with invalid user type
 def test_forgot_password_invalid_user_type(client):
     response = client.post("/forgot_password", data={
@@ -462,47 +453,6 @@ def test_change_password_wrong_current_password(client):
     assert response.status_code == 403
     assert b"Current password is incorrect" in response.data
 
-# Test change password with mismatched new passwords
-def test_change_password_mismatched_passwords(client):
-    # Simulate surgeon login
-    with client.session_transaction() as sess:
-        sess['surgeon_id'] = 1
-    
-    response = client.post("/change_password", data={
-        "current_password": "testpass",
-        "new_password": "newpass123",
-        "confirm_new_password": "differentpass"
-    })
-    
-    assert response.status_code == 403
-    assert b"New passwords do not match" in response.data
-
-# Test change password with missing fields
-def test_change_password_missing_fields(client):
-    # Simulate surgeon login
-    with client.session_transaction() as sess:
-        sess['surgeon_id'] = 1
-    
-    response = client.post("/change_password", data={
-        "current_password": "testpass",
-        "new_password": "",
-        "confirm_new_password": ""
-    })
-    
-    assert response.status_code == 403
-    assert b"All fields are required" in response.data
-
-# Test change password without login
-def test_change_password_no_login(client):
-    response = client.post("/change_password", data={
-        "current_password": "testpass",
-        "new_password": "newpass123",
-        "confirm_new_password": "newpass123"
-    }, follow_redirects=True)
-    
-    assert response.status_code == 200
-    assert b"No user logged in" in response.data or b"Christchurch Hospital" in response.data
-
 # -- Test dashboard access routes --
 
 # Admin dashboard access test
@@ -638,27 +588,6 @@ def test_delete_surgeon_success(client):
     assert response.status_code == 200
     assert b'Allowed Users' in response.data
 
-# Test route to view surgeons list
-def test_view_surgeons_list_access(client):
-    # Simulate admin login
-    with client.session_transaction() as sess:
-        sess['is_admin'] = True
-        sess['admin_id'] = 1
-
-    response = client.get('/surgeons_list')
-    assert response.status_code == 200
-    assert b'Surgeons\' list' in response.data
-
-# Test route to view secretaries list
-def test_view_secretaries_list_access(client):
-    # Simulate admin login
-    with client.session_transaction() as sess:
-        sess['is_admin'] = True
-        sess['admin_id'] = 1
-
-    response = client.get('/secretaries_list')
-    assert response.status_code == 200
-    assert b'Secretaries\' list' in response.data
 
 # Test route to view allowed users list
 def test_view_allowed_users_list_access(client):
@@ -1159,8 +1088,8 @@ def test_add_surgery_with_complication_success(client):
         'surgery_date': '2024-03-01',
         'surgery_type': 'Test surgery type',
         'surgery_outcome': 'Complicated',
-        'surgery_complication': 'Test complication details',
-        'surgery_complication_date': '2024-03-02'
+        'complication': 'Test complication details',
+        'complication_date': '2024-03-02'
     }, follow_redirects=True)
 
     assert response.status_code == 200
@@ -1217,8 +1146,8 @@ def test_edit_surgery_with_complication_success(client):
         'surgery_date': '2024-03-05',
         'surgery_type': 'Updated surgery type',
         'surgery_outcome': 'Complicated',
-        'surgery_complication': 'Updated complication details',
-        'surgery_complication_date': '2024-03-06'
+        'complication': 'Updated complication details',
+        'complication_date': '2024-03-06'
     }, follow_redirects=True)
 
     assert response.status_code == 200

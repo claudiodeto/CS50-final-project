@@ -54,7 +54,8 @@
         </tbody>
     </table>
 
-    <a href="{{ url_for('add_surgeon') }}" class="btn btn-primary mb-4">Add New Surgeon</a>
+    <a href="{{ url_for('add_surgeon') }}" class="btn btn-primary mb-2">Add New Surgeon</a>
+    <hr class="my-5">
 
 
     <h3>Secretaries</h3>
@@ -87,7 +88,8 @@
         </tbody>
     </table>
 
-    <a href="{{ url_for('add_secretary') }}" class="btn btn-primary mb-4">Add New Secretary</a>
+    <a href="{{ url_for('add_secretary') }}" class="btn btn-primary mb-2">Add New Secretary</a>
+    <hr class="my-5">
 
 
     <h3>Patients</h3>
@@ -121,6 +123,7 @@
             {% endfor %}
         </tbody>
     </table>
-    <a href="{{ url_for('enter_new_patient_records') }}" class="btn btn-primary mb-4">Add New Patient</a>
+    <a href="{{ url_for('enter_new_patient_records') }}" class="btn btn-primary mb-2">Add New Patient</a>
+    <hr class="mt-5">
 </div>
 {% endblock %}

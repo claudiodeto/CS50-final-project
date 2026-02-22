@@ -75,15 +75,11 @@ def admin_login():
         username = request.form.get("username")
         password = request.form.get("password")
         
-        # check if username and password are provided
-        if not username or not password:
-            return "Must provide username and password", 403
-        
         # Authenticate admin user
         admin = Admin.query.filter_by(username=username).first()
 
         # Check if admin exists and password is correct
-        if admin == None or not check_password_hash(admin.password_hash, password):
+        if admin is None or not check_password_hash(admin.password_hash, password):
             flash("Invalid credentials", "danger")
             return render_template("admin_login.html")
         
@@ -124,15 +120,11 @@ def patients_login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # check if username and password are provided
-        if not username or not password:
-            return "Must provide username and password", 403
-
         # Authenticate user
         user = Patient.query.filter_by(username=username).first()
 
         # Check if user exists and password is correct
-        if user == None or not check_password_hash(user.password_hash, password):
+        if user is None or not check_password_hash(user.password_hash, password):
             flash("Invalid credentials", "danger")
             return render_template("patients_login.html")
 
@@ -175,16 +167,11 @@ def secretary_login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # Check if username and password are provided
-        if not username or not password:
-            flash("Must provide username and password", "danger")
-            return render_template("secretary_login.html")
-
         # Authenticate user
         user = Secretary.query.filter_by(username=username).first()
 
         # Check if user exists and password is correct
-        if user == None or not check_password_hash(user.password_hash, password):
+        if user is None or not check_password_hash(user.password_hash, password):
             flash("Invalid credentials", "danger")
             return render_template("secretary_login.html")
 
@@ -227,16 +214,11 @@ def surgeons_login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        # Check if username and password are provided
-        if not username or not password:
-            flash("Must provide username and password", "danger")
-            return render_template("surgeons_login.html")
-
         # Authenticate user
         user = Surgeon.query.filter_by(username=username).first()
 
         # Check if user exists and password is correct
-        if user == None or not check_password_hash(user.password_hash, password):
+        if user is None or not check_password_hash(user.password_hash, password):
             flash("Invalid credentials", "danger")
             return render_template("surgeons_login.html")
 
@@ -276,13 +258,10 @@ def set_password():
         password = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
 
-        # Check if password and confirmation are provided
-        if not password or not confirm_password:
-            return "Must provide password and confirmation", 403
-
         # Check if passwords match
         if password != confirm_password:
-            return "Passwords do not match", 403
+            flash("Passwords do not match", "danger")
+            return render_template("set_password.html")
         
         # Retrieve user based on pending_user_id and pending_user_type in session
         user_id = session.get("pending_user_id")
@@ -301,7 +280,8 @@ def set_password():
             return redirect("/")
         
         if not user:
-            return "User not found", 404
+            flash("User not found", "danger")
+            return render_template("set_password.html")
         
         # Update user's password
         user.password_hash = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
@@ -378,7 +358,7 @@ def logout():
     return redirect("/")
 
 
-# Forgot Password route
+# Forgot Password route (links should include user_type query parameter)
 @app.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
     # Get user_type from URL query parameter
@@ -387,9 +367,9 @@ def forgot_password():
     if request.method == "POST":
         username = request.form.get("username")
 
-        if not username or not user_type:
-            flash("Please provide username.")
-            return redirect(f"/forgot_password?user_type={user_type if user_type else ''}")
+        if not user_type:
+            flash("Invalid request. Please access the forgot password from a login page.")
+            return redirect("/")
 
         # Retrieve user based on username and user_type
         if user_type == "surgeon":
@@ -428,6 +408,7 @@ def forgot_password():
 
     return render_template("forgot_password.html", user_type=user_type)
 
+
 #  Reset Link Sent route
 @app.route("/reset_link_sent")
 def reset_link_sent():
@@ -436,6 +417,7 @@ def reset_link_sent():
         return redirect("/")
     return render_template("reset_link_sent.html", reset_link=reset_link)
 
+
 # Reset Password with Token route   
 @app.route("/reset_password/<token>", methods=["GET", "POST"])
 def reset_password(token):
@@ -443,21 +425,18 @@ def reset_password(token):
 
     if not reset_token:
         flash("Invalid or expired token.")
-        return redirect("/forgot_password")
+        return redirect("/")
     
     if reset_token.expires < datetime.datetime.now():
-        flash("Token has expired.")
+        flash("Token has expired. Please request a new password reset.")
+        user_type = reset_token.user_type
         db.session.delete(reset_token)
         db.session.commit()
-        return redirect("/forgot_password")
+        return redirect(f"/forgot_password?user_type={user_type}")
 
     if request.method == "POST":
         new_password = request.form.get("new_password")
         confirm_password = request.form.get("confirm_password")
-
-        if not new_password or not confirm_password:
-            flash("Please provide both password fields.")
-            return redirect(f"/reset_password/{token}")
 
         if new_password != confirm_password:
             flash("Passwords do not match.")
@@ -472,12 +451,12 @@ def reset_password(token):
             user = Secretary.query.get(reset_token.user_id)
         else:
             flash("Invalid user type.")
-            return redirect("/forgot_password")
+            return redirect(f"/forgot_password?user_type={reset_token.user_type}")
 
         if not user:
             flash("User not found.")
-            return redirect("/forgot_password")
-
+            return redirect(f"/forgot_password?user_type={reset_token.user_type}")
+        
         # Update user's password
         user.password_hash = generate_password_hash(new_password, method='pbkdf2:sha256', salt_length=16)
 
@@ -504,6 +483,8 @@ def reset_password(token):
 
 # change password route for logged-in users
 @app.route("/change_password", methods=["GET", "POST"])
+@any_user_required
+
 def change_password():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
@@ -511,14 +492,11 @@ def change_password():
         new_password = request.form.get("new_password")
         confirm_new_password = request.form.get("confirm_new_password")
 
-        # Check if all fields are provided
-        if not current_password or not new_password or not confirm_new_password:
-            return "All fields are required", 403
-
         # Check if new passwords match
         if new_password != confirm_new_password:
-            return "New passwords do not match", 403
-
+            flash("New passwords do not match", "danger")
+            return render_template("change_password.html")
+        
         # Determine user type and retrieve user
         if session.get("admin_id"):
             user = db.session.get(Admin, session["admin_id"])
@@ -528,9 +506,6 @@ def change_password():
             user = db.session.get(Secretary, session["secretary_id"])
         elif session.get("patient_id"):
             user = db.session.get(Patient, session["patient_id"])
-        else:
-            flash("No user logged in.")
-            return redirect("/")
 
         # Verify current password
         if not check_password_hash(user.password_hash, current_password):
@@ -600,22 +575,40 @@ def add_secretary():
         gender = request.form.get("gender")
         date_of_birth = request.form.get("date_of_birth")
         contact_info = request.form.get("contact_info")
-
-        if not username or not password or not confirm_password or not first_name or not last_name:
-            return "Missing required fields", 400       
+        
         if password != confirm_password:
-            return "Passwords do not match", 400
+            flash("Passwords do not match", "danger")
+            return render_template("add_secretary.html",
+                                   username=username,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   gender=gender,
+                                   date_of_birth=date_of_birth,
+                                   contact_info=contact_info)
         
         # Check if username already exists
         existing_secretary = Secretary.query.filter_by(username=username).first()
         if existing_secretary:
-            return "Username already exists", 400
+            flash("Username already exists", "danger")
+            return render_template("add_secretary.html",
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   gender=gender,
+                                   date_of_birth=date_of_birth,
+                                   contact_info=contact_info)
         
         # Hash the password for security
         try:
             password_hash = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
         except Exception as e:
-            return f"Error hashing password: {e}", 500
+            flash(f"Error hashing password: {e}", "danger")
+            return render_template("add_secretary.html",
+                                   username=username,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   gender=gender,
+                                   date_of_birth=date_of_birth,
+                                   contact_info=contact_info)
         
         # convert gender to single character
         if gender == "male":
@@ -629,7 +622,13 @@ def add_secretary():
         try:
             date_of_birth = datetime.datetime.strptime(date_of_birth, "%Y-%m-%d").date()
         except (TypeError, ValueError):
-            date_of_birth = None 
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("add_secretary.html",
+                                   username=username,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   gender=gender,
+                                   contact_info=contact_info) 
         
         # update database with new secretary by updating class instance
         new_secretary = Secretary(
@@ -654,7 +653,8 @@ def add_secretary():
         db.session.add(log)
         db.session.add(new_secretary)
         db.session.commit()
-        flash("New secretary added successfully!")
+        
+        flash("New secretary added successfully!", "success")
         return redirect("/allowed_users")
     
     # User reached route via GET (as by clicking a link or via redirect)
@@ -667,7 +667,8 @@ def add_secretary():
 def delete_secretary(secretary_id):
     secretary = Secretary.query.get(secretary_id)
     if not secretary:
-        return "Secretary not found", 404
+        flash("Secretary not found", "danger")
+        return redirect("/allowed_users")
     
     # log the deletion of the secretary
     log = AuditLog(
@@ -682,7 +683,7 @@ def delete_secretary(secretary_id):
     db.session.delete(secretary)
     db.session.commit()
 
-    flash("Secretary deleted successfully!")
+    flash("Secretary deleted successfully!", "success")
     return redirect("/allowed_users")
 
 
@@ -705,21 +706,46 @@ def add_surgeon():
         specialty = request.form.get("specialty")
         contact_info = request.form.get("contact_info")
 
-        if not username or not password or not confirm_password or not first_name or not last_name:
-            return "Missing required fields", 400
         if password != confirm_password:
-            return "Passwords do not match", 400  
+            flash("Passwords do not match", "danger")
+            return render_template("add_surgeon.html",
+                                   username=username,
+                                   surgeon_code=surgeon_code,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   gender=gender,
+                                   date_of_birth=date_of_birth,
+                                   specialty=specialty,
+                                   contact_info=contact_info)
           
         # Check if username already exists
-        existing_surgeon = Surgeon.query.filter_by(username=username).first()
+        existing_surgeon = Surgeon.query.filter(
+            (Surgeon.username == username) | (Surgeon.surgeon_code == surgeon_code)
+        ).first()
         if existing_surgeon:
-            return "Username already exists", 400
+            flash("Username already exists", "danger")
+            return render_template("add_surgeon.html",
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   gender=gender,
+                                   date_of_birth=date_of_birth,
+                                   specialty=specialty,
+                                   contact_info=contact_info)
         
         # Hash the password for security
         try:
             password_hash = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
         except Exception as e:
-            return f"Error hashing password: {e}", 500
+            flash(f"Error hashing password: {e}", "danger")
+            return render_template("add_surgeon.html",
+                                   username=username,
+                                   surgeon_code=surgeon_code,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   gender=gender,
+                                   date_of_birth=date_of_birth,
+                                   specialty=specialty,
+                                   contact_info=contact_info)
 
         # convert gender to single character
         if gender == "male":
@@ -731,10 +757,17 @@ def add_surgeon():
         
         # convert date_of_birth to a date object
         try:
-            print(f"Raw date_of_birth input: {date_of_birth}")  # Debugging line
             date_of_birth = datetime.datetime.strptime(date_of_birth, "%Y-%m-%d").date()
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("add_surgeon.html",
+                                   username=username,
+                                   surgeon_code=surgeon_code,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   gender=gender,
+                                   specialty=specialty,
+                                   contact_info=contact_info)
 
         # update database with new surgeon by updating class instance
         new_surgeon = (Surgeon( 
@@ -762,7 +795,7 @@ def add_surgeon():
         db.session.add(new_surgeon)
         db.session.commit()
 
-        flash("New surgeon added successfully!")
+        flash("New surgeon added successfully!", "success")
 
         return redirect("/allowed_users")
 
@@ -776,7 +809,8 @@ def add_surgeon():
 def delete_surgeon(surgeon_id):
     surgeon = Surgeon.query.get(surgeon_id)
     if not surgeon:
-        return "Surgeon not found", 404
+        flash("Surgeon not found", "danger")
+        return redirect("/allowed_users")
     
     try:
         # remove dependent records first (appointments, surgeries, admissions, diagnoses)
@@ -801,7 +835,7 @@ def delete_surgeon(surgeon_id):
         db.session.delete(surgeon)
         db.session.commit()
 
-        flash("Surgeon deleted successfully!")
+        flash("Surgeon deleted successfully!", "success")
         return redirect("/allowed_users")
     
     except SQLAlchemyError:
@@ -811,22 +845,6 @@ def delete_surgeon(surgeon_id):
         return redirect("/allowed_users")
 
 
-# route to view surgeons list (admin only)
-@app.route("/surgeons_list")
-@admin_required
-def surgeons_list():
-    surgeons = Surgeon.query.all()
-    return render_template("surgeons_list.html", surgeons=surgeons)
-
-
-# route to view secretaries list (admin only)
-@app.route("/secretaries_list")
-@admin_required
-def secretaries_list():
-    secretaries = Secretary.query.all()
-    return render_template("secretaries_list.html", secretaries=secretaries)
-
-
 # route to view allowed users (admin only)
 @app.route("/allowed_users")
 @admin_required
@@ -834,8 +852,8 @@ def allowed_users():
     admins = Admin.query.all()
     surgeons = Surgeon.query.all()
     secretaries = Secretary.query.all()
-    # return only patients who have user accounts
-    patients = Patient.query.filter(Patient.username.isnot(None)).all()
+    patients = Patient.query.all()
+
     return render_template("allowed_users.html", admins=admins, surgeons=surgeons, secretaries=secretaries ,patients=patients)
 
 
@@ -859,21 +877,39 @@ def enter_new_patient_records():
         medical_history = request.form.get("medical_history")
         username = request.form.get("username")
         password = request.form.get("password")
-
-        # Validate required fields
-        if not NHI or not first_name or not last_name or not gender or not date_of_birth or not contact_info:
-            return "Missing required fields", 400
         
-        # validate NHI format (assuming NHI is 6 characters long)
-        if re.search(r"^[A-Z]{3}\d{3}$", NHI):
-            NHI = NHI.upper()  # Ensure NHI is uppercase    
-        else:
-            raise ValueError("invalid NHI")
+       # validate NHI format (assuming NHI is 6 characters long)
+        NHI = NHI.upper()  # Convert to uppercase first
+        if not re.search(r"^[A-Z]{3}\d{3}$", NHI):
+            flash("Invalid NHI format. Must be 3 letters followed by 3 digits (e.g., ABC123).", "danger")
+            return render_template("enter_new_patient_records.html",
+                                      patient_NHI=NHI,
+                                      patient_first_name=first_name,
+                                      patient_last_name=last_name,
+                                      gender=gender,
+                                      date_of_birth=date_of_birth,
+                                      contact_info=contact_info,
+                                      emergency_contact_name=emergency_contact_name,
+                                      emergency_contact_phone=emergency_contact_phone,
+                                      medical_history=medical_history,
+                                      username=username
+                                      )
         
         # Check if patient with the same NHI already exists
         existing_patient = Patient.query.filter_by(NHI=NHI).first()
         if existing_patient:
-            return render_template("patients_records.html", patient=existing_patient)
+            flash("Patient with this NHI already exists", "danger")
+            return render_template("enter_new_patient_records.html",
+                                      patient_first_name=first_name,
+                                      patient_last_name=last_name,
+                                      gender=gender,
+                                      date_of_birth=date_of_birth,
+                                      contact_info=contact_info,
+                                      emergency_contact_name=emergency_contact_name,
+                                      emergency_contact_phone=emergency_contact_phone,
+                                      medical_history=medical_history,
+                                      username=username
+                                      )
 
         # convert gender to single character
         if gender == "male":
@@ -887,14 +923,37 @@ def enter_new_patient_records():
         try:
             date_of_birth = datetime.datetime.strptime(date_of_birth, "%Y-%m-%d").date()
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("enter_new_patient_records.html",
+                                      patient_NHI=NHI,
+                                      patient_first_name=first_name,
+                                      patient_last_name=last_name,
+                                      gender=gender,
+                                      contact_info=contact_info,
+                                      emergency_contact_name=emergency_contact_name,
+                                      emergency_contact_phone=emergency_contact_phone,
+                                      medical_history=medical_history,
+                                      username=username
+                                      )
 
         # Hash the password for security
         if password:
             try:
                 password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16)
             except Exception as e:
-                return f"Error hashing password: {e}", 500
+                flash(f"Error hashing password: {e}", "danger")
+                return render_template("enter_new_patient_records.html",
+                                          patient_NHI=NHI,
+                                          patient_first_name=first_name,
+                                          patient_last_name=last_name,
+                                          gender=gender,
+                                          date_of_birth=date_of_birth,
+                                          contact_info=contact_info,
+                                          emergency_contact_name=emergency_contact_name,
+                                          emergency_contact_phone=emergency_contact_phone,
+                                          medical_history=medical_history,
+                                          username=username
+                                          )
         
         # update database with new patient by updating class instance
         new_patient = Patient(
@@ -926,7 +985,7 @@ def enter_new_patient_records():
         db.session.add(log)
         db.session.commit()
 
-        flash("New patient records added successfully!")
+        flash("New patient records added successfully!", "success")
         return redirect("/allowed_users")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -957,11 +1016,11 @@ def edit_patient(patient_id):
                 try:
                     patient.date_of_birth = datetime.datetime.strptime(date_of_birth, "%Y-%m-%d").date()
                 except ValueError:
-                    return "Invalid date format. Use YYYY-MM-DD.", 400
+                    flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+                    return render_template("edit_patient.html", patient_id=patient.id, patient=patient)
             patient.contact_info = request.form.get("contact_info")
             patient.emergency_contact_name = request.form.get("emergency_contact_name")
             patient.emergency_contact_phone = request.form.get("emergency_contact_phone")
-            patient.medical_history = request.form.get("medical_history")
             patient.username = request.form.get("username")
             new_password = request.form.get("new_password")
             if new_password:
@@ -991,7 +1050,8 @@ def edit_patient(patient_id):
 def delete_patient(patient_id):
     patient = Patient.query.get(patient_id)
     if not patient:
-        return "Patient not found", 404
+        flash("Patient not found", "danger")
+        return redirect("/allowed_users")
     
     try:
         # remove dependent records first (appointments, surgeries, admissions, diagnoses)
@@ -1016,14 +1076,14 @@ def delete_patient(patient_id):
         db.session.delete(patient)
         db.session.commit()
 
-        flash("Patient deleted successfully!")
+        flash("Patient deleted successfully!", "success")
         return redirect("/allowed_users")
     
     except SQLAlchemyError:
         db.session.rollback()
         app.logger.exception("Error deleting patient and dependent records")
         flash("An error occurred due to database constraints. Patient could not be deleted.", "danger")
-        return redirect(f"/patients_records/{patient.id}")
+        return redirect("/allowed_users")
     
 
 # route to search patients records (sadmin, secretary or surgeon only)
@@ -1044,14 +1104,16 @@ def search_patients_records():
 
         # address lack of input
         if not (nhi_query or first_name_query or last_name_query or dob_query):
-            return "Please provide at least one search criteria.", 400
+            flash("Please provide at least one search criteria.", "danger")
+            return render_template("search_patients_records.html", patients=patients)
         
         # check for correct date format
         if dob_query:
             try:
                 datetime.datetime.strptime(dob_query, "%Y-%m-%d")
             except ValueError:
-                return "Invalid date format. Use YYYY-MM-DD.", 400
+                flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+                return render_template("search_patients_records.html", patients=patients)
 
         # build the query dynamically based on provided search criteria
         query = Patient.query
@@ -1064,7 +1126,6 @@ def search_patients_records():
         if dob_query:
             dob = datetime.datetime.strptime(dob_query, "%Y-%m-%d").date()
             query = query.filter(Patient.date_of_birth == dob)
-          
 
         patients = query.all()
 
@@ -1078,13 +1139,18 @@ def search_patients_records():
 @app.route("/patients_records/<int:patient_id>", methods=["GET", "POST"])
 @any_user_required
 def patients_records(patient_id):
+    # Verify patient exists
+    patient = Patient.query.get_or_404(patient_id)
+
     # if patient is logged in, ensure they can only view their own records
     if session.get("patient_id") and session.get("patient_id") != patient_id:
-        return "You do not have permission to view other patients' records.", 403
+        flash("You do not have permission to view other patients' records.", "danger")
+        return redirect(f"/patients_records/{session.get('patient_id')}")
     
-    patient = Patient.query.get_or_404(patient_id)
+    # get logged-in surgeon details if applicable
     surgeon_id = session.get("surgeon_id")
-    surgeon = Surgeon.query.get(surgeon_id)
+    surgeon = Surgeon.query.get(surgeon_id) if surgeon_id else None
+
     appointments = Appointment.query.filter_by(patient_id=patient.id).all()
     admissions = Admission.query.filter_by(patient_id=patient.id).all()
     diagnoses = Diagnosis.query.filter_by(patient_id=patient.id).all()
@@ -1113,13 +1179,11 @@ def new_diagnosis(patient_id):
         diagnosis_text = request.form.get("diagnosis")
         notes = request.form.get("notes")
 
-        if not diagnosis_date or not diagnosis_text:
-            return "Missing required fields", 400
-
         try:
             diagnosis_date = datetime.datetime.strptime(diagnosis_date, "%Y-%m-%d").date()
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("new_diagnosis.html", patient=patient)
 
         new_diagnosis = Diagnosis(
             patient_id=patient.id,
@@ -1161,18 +1225,17 @@ def edit_diagnosis(diagnosis_id):
         diagnosis_text = request.form.get("diagnosis")
         notes = request.form.get("notes")
 
-        if not diagnosis_date or not diagnosis_text:
-            return "Missing required fields", 400
-
         # Ensure the logged-in surgeon is the one who created the diagnosis
         if diagnosis.surgeon_id != session.get("surgeon_id"):
-            return "You do not have permission to edit this diagnosis.", 403
-
+            flash("You do not have permission to edit this diagnosis.", "danger")
+            return redirect(f"/patients_records/{patient.id}")
+        
          # convert diagnosis_date to a date object
         try:
             diagnosis_date = datetime.datetime.strptime(diagnosis_date, "%Y-%m-%d").date()
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("edit_diagnosis.html", diagnosis=diagnosis, patient=patient)
 
         diagnosis.diagnosis_date = diagnosis_date
         diagnosis.diagnosis = diagnosis_text
@@ -1191,7 +1254,7 @@ def edit_diagnosis(diagnosis_id):
 
         db.session.commit()
 
-        flash("Diagnosis updated successfully!")
+        flash("Diagnosis updated successfully!", "success")
         return redirect(f"/patients_records/{patient.id}")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -1222,13 +1285,11 @@ def new_appointment(patient_id):
         appointment_date = request.form.get("appointment_date")
         reason = request.form.get("reason")
 
-        if not appointment_date:
-            return "Missing required fields", 400
-
         try:
             appointment_date = datetime.datetime.strptime(appointment_date, "%Y-%m-%dT%H:%M")
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DDTHH:MM.", 400
+            flash("Invalid date format. Use YYYY-MM-DDTHH:MM.", "danger")
+            return render_template("new_appointment.html", patient=patient, surgeon=surgeon, surgeons=surgeons if session.get("secretary_id") else None)
 
         new_appointment = Appointment(
             patient_id=patient.id,
@@ -1237,9 +1298,12 @@ def new_appointment(patient_id):
             reason=reason
         )
 
+        db.session.add(new_appointment)
+        db.session.flush()  # Ensure new_appointment.id is generated before logging
+
         # log the addition of a new appointment
         log = AuditLog(
-            user_id=session.get("surgeon_id") or session.get("secretary_id"),
+            user_id=session.get("surgeon_id") if surgeon else session.get("secretary_id"),
             action="add",
             table_name="Secretary" if session.get("secretary_id") else "Surgeon",
             record_id=new_appointment.id,
@@ -1247,10 +1311,9 @@ def new_appointment(patient_id):
             details=f"Added new appointment for patient ID {patient.id} on {appointment_date}"
         )
         db.session.add(log)
-        db.session.add(new_appointment)
         db.session.commit()
 
-        flash("New appointment added successfully!")
+        flash("New appointment added successfully!", "success")
         return redirect(f"/patients_records/{patient.id}")
 
     return render_template("new_appointment.html", patient=patient, surgeon=surgeon, surgeons=surgeons if session.get("secretary_id") else None)
@@ -1278,19 +1341,18 @@ def edit_appointment(appointment_id):
         appointment_date = request.form.get("appointment_date")
         reason = request.form.get("reason")
 
-        if not appointment_date:
-            return "Missing required fields", 400
-
         # Ensure the logged-in surgeon is the one who created the appointment
         if session.get("surgeon_id"):
             if appointment.surgeon_id != session.get("surgeon_id"):
-                return "You do not have permission to edit this appointment.", 403
+                flash("You do not have permission to edit this appointment.", "danger")
+                return redirect(f"/patients_records/{patient.id}")
 
          # convert appointment_date to a date object
         try:
             appointment_date = datetime.datetime.strptime(appointment_date, "%Y-%m-%dT%H:%M")
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DDTHH:MM.", 400
+            flash("Invalid date format. Use YYYY-MM-DDTHH:MM.", "danger")
+            return render_template("edit_appointment.html", appointment=appointment, patient=patient, surgeon=surgeon, surgeons=surgeons if session.get("secretary_id") else None)
 
         appointment.appointment_date = appointment_date
         appointment.reason = reason
@@ -1307,7 +1369,7 @@ def edit_appointment(appointment_id):
         db.session.add(log)
         db.session.commit()
 
-        flash("Appointment updated successfully!")
+        flash("Appointment updated successfully!", "success")
 
         return redirect(f"/patients_records/{patient.id}")
 
@@ -1324,7 +1386,8 @@ def delete_appointment(appointment_id):
 
     # Ensure the appointment date is in the future
     if appointment.appointment_date <= datetime.datetime.now():
-        return "Cannot delete past or today's appointments.", 400
+        flash("Cannot delete past or today's appointments.", "danger")
+        return redirect(f"/patients_records/{patient.id}")
 
     # log the deletion action
     log = AuditLog(
@@ -1356,7 +1419,7 @@ def search_appointments():
         surgeon_id = None
         surgeon_last_name = None
 
-    # User reached route via POST (as by submitting a form via POST)
+    # User reached route via POST
     if request.method == "POST":
         patient_nhi = request.form.get("patient_NHI")
         surgeon_last_name = request.form.get("surgeon_last_name") if session.get("secretary_id") else surgeon_last_name
@@ -1369,7 +1432,8 @@ def search_appointments():
             if date_to:
                 date_to = datetime.datetime.strptime(date_to, "%Y-%m-%d")
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("search_appointments.html", appointments=appointments)
         
         # Query the appointments based on the search criteria
         query = Appointment.query
@@ -1400,7 +1464,8 @@ def appointments_list():
         try:
             date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
         except ValueError:
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return redirect("/appointments_list")
 
         if session.get("secretary_id"):
             appointments = Appointment.query.filter(
@@ -1450,26 +1515,31 @@ def new_admission(patient_id):
         admitted_from = request.form.get("admitted_from")
         discharged_to = request.form.get("discharged_to")
 
-        if not admission_date or not reason:
-            return "Missing required fields", 400
-        if not admitted_from:
+        if not admitted_from or admitted_from.strip() == "":
             admitted_from = None
-        if not discharged_to:
+        if not discharged_to or discharged_to.strip() == "":
             discharged_to = None
-    
+
         try:
             admission_date = datetime.datetime.strptime(admission_date, "%Y-%m-%d").date()
             if discharge_date:
                 discharge_date = datetime.datetime.strptime(discharge_date, "%Y-%m-%d").date()
                 if discharge_date < admission_date:
-                    return "Discharge date cannot be earlier than admission date.", 400
+                    flash("Discharge date cannot be earlier than admission date.", "danger")
+                    return render_template("new_admission.html", patient=patient, surgeon=surgeon, surgeons=surgeons if session.get("secretary_id") else None,
+                                           admission_date=admission_date, 
+                                           reason=reason, 
+                                           admitted_from=admitted_from, 
+                                           discharged_to=discharged_to)
             else:
                 discharge_date = None
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("new_admission.html", patient=patient, surgeon=surgeon, surgeons=surgeons if session.get("secretary_id") else None,
+                                           reason=reason, 
+                                           admitted_from=admitted_from, 
+                                           discharged_to=discharged_to)
 
-        if discharge_date and discharge_date < admission_date:
-            return "Discharge date cannot be earlier than admission date.", 400
 
          # create new admission record
         new_admission = Admission(
@@ -1482,6 +1552,9 @@ def new_admission(patient_id):
             discharged_to=discharged_to
         )
 
+        db.session.add(new_admission)
+        db.session.flush() 
+
         # log the addition of a new admission
         log = AuditLog(
             user_id=session.get("surgeon_id") if surgeon else session.get("secretary_id"),
@@ -1492,10 +1565,9 @@ def new_admission(patient_id):
             details=f"Added new admission for patient ID {patient.id} on {admission_date}"
         )
         db.session.add(log)
-        db.session.add(new_admission)
         db.session.commit()
 
-        flash("New admission added successfully!")
+        flash("New admission added successfully!", "success")
         return redirect(f"/patients_records/{patient.id}")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -1525,16 +1597,16 @@ def edit_admission(admission_id):
         admitted_from = request.form.get("admitted_from")
         discharged_to = request.form.get("discharged_to")
 
-        if not admission_date or not reason:
-            return "Missing required fields", 400
-        if not admitted_from:
+    
+        if not admitted_from or admitted_from.strip() == "":
             admitted_from = None
-        if not discharged_to:
+        if not discharged_to or discharged_to.strip() == "":
             discharged_to = None
 
         # Ensure the logged-in surgeon is the one who created the admission
         if session.get("surgeon_id") and admission.surgeon_id != session.get("surgeon_id"):
-            return "You do not have permission to edit this admission.", 403
+            flash("You do not have permission to edit this admission.", "danger")
+            return redirect(f"/patients_records/{patient.id}")
 
          # convert admission_date and discharge_date to date objects
          # and ensure discharge_date is not earlier than admission_date
@@ -1544,14 +1616,13 @@ def edit_admission(admission_id):
             if discharge_date:
                 discharge_date = datetime.datetime.strptime(discharge_date, "%Y-%m-%d").date()
                 if discharge_date < admission_date:
-                    return "Discharge date cannot be earlier than admission date.", 400
+                    flash("Discharge date cannot be earlier than admission date.", "danger")
+                    return render_template("edit_admission.html", admission=admission, patient=patient, surgeon=surgeon, surgeons=surgeons if session.get("secretary_id") else None)
             else:
                 discharge_date = None
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
-
-        if discharge_date and discharge_date < admission_date:
-            return "Discharge date cannot be earlier than admission date.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("edit_admission.html", admission=admission, patient=patient, surgeon=surgeon, surgeons=surgeons if session.get("secretary_id") else None)
         
         # update admission record
         admission.surgeon_id = surgeon.id if surgeon else surgeon_id
@@ -1573,7 +1644,7 @@ def edit_admission(admission_id):
         db.session.add(log)
         db.session.commit()
 
-        flash("Admission updated successfully!")
+        flash("Admission updated successfully!", "success")
         return redirect(f"/patients_records/{patient.id}")
 
     return render_template("edit_admission.html", admission=admission, patient=patient, surgeon=surgeon, surgeons=surgeons if session.get("secretary_id") else None)
@@ -1588,7 +1659,8 @@ def delete_admission(admission_id):
 
     # Ensure the admission date is in the future
     if admission.admission_date <= datetime.datetime.now():
-        return "Cannot delete past or current admissions.", 400
+        flash("Cannot delete past or current admissions.", "danger")
+        return redirect(f"/patients_records/{patient.id}")
 
     # log the deletion action
     log = AuditLog(
@@ -1603,7 +1675,7 @@ def delete_admission(admission_id):
     db.session.delete(admission)
     db.session.commit()
 
-    flash("Admission deleted successfully!")
+    flash("Admission deleted successfully!", "success")
     return redirect(f"/patients_records/{patient.id}")
 
 
@@ -1625,28 +1697,35 @@ def new_surgery(patient_id):
         surgery_date = request.form.get("surgery_date")
         surgery_type = request.form.get("surgery_type")
         surgery_outcome = request.form.get("surgery_outcome")
-        surgery_complication = request.form.get("surgery_complication")
-        surgery_complication_date = request.form.get("surgery_complication_date")
-
-        # Validate required fields
-        if not surgery_date or not surgery_type or not surgery_outcome:
-            return "Missing required fields", 400
+        surgery_complication = request.form.get("complication")
+        surgery_complication_date = request.form.get("complication_date")
         
         if not surgery_complication or surgery_complication.strip() == "" or surgery_complication.lower() == "no" or surgery_complication.lower() == "none":
             surgery_complication = None
             surgery_complication_date = None
 
         if surgery_complication and (not surgery_complication_date or surgery_complication_date.strip() == ""):
-            return "Please provide a date for the complication.", 400
+            flash("Please provide a date for the complication.", "danger")
+            return render_template("new_surgery.html", patient=patient, surgeon=surgeon)
 
         if surgery_complication_date and not surgery_complication:
-            return "Please provide a description for the complication.", 400
+            flash("Please provide a description for the complication.", "danger")
+            return render_template("new_surgery.html", patient=patient, surgeon=surgeon)    
 
         # convert surgery_date to a date object
         try:
             surgery_date = datetime.datetime.strptime(surgery_date, "%Y-%m-%d").date()
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("new_surgery.html", patient=patient, surgeon=surgeon)
+        
+        # If there's a complication, add it to the Complication table
+        if surgery_complication and surgery_complication_date:
+            try:
+                surgery_complication_date = datetime.datetime.strptime(surgery_complication_date, "%Y-%m-%d").date()
+            except (TypeError, ValueError):
+                flash("Invalid complication date format. Use YYYY-MM-DD.", "danger")
+                return render_template("new_surgery.html", patient=patient, surgeon=surgeon)
 
         # update database with new surgery by updating class instance
         new_surgery = Surgery(
@@ -1656,6 +1735,8 @@ def new_surgery(patient_id):
             surgery_type=surgery_type,
             outcome=surgery_outcome
         )
+        db.session.add(new_surgery)
+        db.session.flush()  # Ensure new_surgery.id is generated before logging
 
         # log the addition of a new surgery
         log = AuditLog( 
@@ -1667,23 +1748,15 @@ def new_surgery(patient_id):
             details=f"Added new surgery for patient ID {patient.id} on {surgery_date}"
         )
         db.session.add(log)
-        db.session.add(new_surgery)
-        db.session.commit()
 
-        flash("Surgery added successfully!")
-
-        # If there's a complication, add it to the Complication table
         if surgery_complication and surgery_complication_date:
-            try:
-                surgery_complication_date = datetime.datetime.strptime(surgery_complication_date, "%Y-%m-%d").date()
-            except (TypeError, ValueError):
-                return "Invalid complication date format. Use YYYY-MM-DD.", 400
-
             new_complication = Complication(
                 surgery_id=new_surgery.id,
                 description=surgery_complication,
                 complication_date=surgery_complication_date
             )
+            db.session.add(new_complication)
+            db.session.flush()  # Ensure new_complication.id is generated before logging
 
             # log the addition of a new complication
             log = AuditLog(
@@ -1695,10 +1768,11 @@ def new_surgery(patient_id):
                 details=f"Added new complication for surgery ID {new_surgery.id} on {surgery_complication_date}"
             )
             db.session.add(log)
-            db.session.add(new_complication)
-            db.session.commit()
+        db.session.commit()
 
-            flash("Complication added successfully!")
+        flash("Surgery added successfully!", "success")
+        if surgery_complication and surgery_complication_date:
+            flash("Complication added successfully!", "success")
 
         return redirect(f"/patients_records/{patient.id}")
 
@@ -1725,27 +1799,32 @@ def edit_surgery(surgery_id):
         surgery_complication_date = request.form.get("complication_date")
 
         if not surgery_date or not surgery_type or not surgery_outcome:
-            return "Missing required fields", 400
+            flash("Missing required fields", "danger")
+            return render_template("new_surgery.html", patient=patient, surgeon=surgeon)
         
         if not surgery_complication or surgery_complication.strip() == "" or surgery_complication.lower() == "no" or surgery_complication.lower() == "none":
             surgery_complication = None
             surgery_complication_date = None
 
         if surgery_complication and (not surgery_complication_date or surgery_complication_date.strip() == ""):
-            return "Please provide a date for the complication.", 400
+            flash("Please provide a date for the complication.", "danger")
+            return render_template("new_surgery.html", patient=patient, surgeon=surgeon)
 
         if surgery_complication_date and not surgery_complication:
-            return "Please provide a description for the complication.", 400
+            flash("Please provide a description for the complication.", "danger")
+            return render_template("new_surgery.html", patient=patient, surgeon=surgeon)
 
          # convert surgery_date to a date object
         try:
             surgery_date = datetime.datetime.strptime(surgery_date, "%Y-%m-%d").date()
         except (TypeError, ValueError):
-            return "Invalid date format. Use YYYY-MM-DD.", 400
+            flash("Invalid date format. Use YYYY-MM-DD.", "danger")
+            return render_template("new_surgery.html", patient=patient, surgeon=surgeon)
 
         # Ensure the logged-in surgeon is the one who created the surgery record
         if surgery.surgeon_id != session.get("surgeon_id"):
-            return "You do not have permission to edit this surgery record.", 403
+            flash("You do not have permission to edit this surgery record.", "danger")
+            return redirect(f"/patients_records/{patient.id}")
 
         # update surgery record
         surgery.surgery_date = surgery_date
@@ -1762,21 +1841,22 @@ def edit_surgery(surgery_id):
             details=f"Edited surgery ID {surgery.id} for patient ID {patient.id} on {surgery_date}"
         )
         db.session.add(log)
-        db.session.commit()
-        flash("Surgery updated successfully!")
 
         # If there's a complication, update or add it to the Complication table
         if surgery_complication and surgery_complication_date:
             try:
                 surgery_complication_date = datetime.datetime.strptime(surgery_complication_date, "%Y-%m-%d").date()
             except (TypeError, ValueError):
-                return "Invalid complication date format. Use YYYY-MM-DD.", 400
+                flash("Invalid complication date format. Use YYYY-MM-DD.", "danger")
+                return render_template("new_surgery.html", patient=patient, surgeon=surgeon)
 
             new_complication = Complication(
                 surgery_id=surgery.id,
                 description=surgery_complication,
                 complication_date=surgery_complication_date
             )
+            db.session.add(new_complication)
+            db.session.flush()  # Ensure new_complication.id is generated before logging
 
             # log the addition of a new complication
             log = AuditLog(
@@ -1788,10 +1868,6 @@ def edit_surgery(surgery_id):
                 details=f"Added new complication for surgery ID {surgery.id} on {surgery_complication_date}"
             )
             db.session.add(log)
-            db.session.add(new_complication)
-            db.session.commit()
-
-            flash("Complication added successfully!")
 
         elif not surgery_complication:
             # If complication field is cleared, delete existing complications
@@ -1806,8 +1882,11 @@ def edit_surgery(surgery_id):
                 details=f"Deleted complications for surgery ID {surgery.id}"
             )
             db.session.add(log)
-            db.session.commit()
 
+        # single commit for all changes (surgery update, complication add/delete, and logs)
+        db.session.commit()
+
+        flash("Surgery updated successfully!")
         return redirect(f"/patients_records/{patient.id}")
             
     # User reached route via GET (as by clicking a link or via redirect)
@@ -1840,6 +1919,35 @@ def audit_logs():
     logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
     return render_template("audit_logs.html", logs=logs)
 
+
+# -- Demo reset route (for testing purposes only) ---
+@app.route("/reset_demo", methods=["POST"])
+def reset_demo():
+    """Reset database to clean demo state - USE WITH CAUTION"""
+    
+    try:
+        # Drop all tables and recreate
+        db.drop_all()
+        db.create_all()
+        
+        # Create single demo admin
+        demo_admin = Admin(
+            username="admin",
+            password_hash=generate_password_hash("Test1234!", method="pbkdf2:sha256", salt_length=16)
+        )
+        db.session.add(demo_admin)
+        db.session.commit()
+        
+        # Clear any existing sessions
+        session.clear()
+        
+        flash("✅ Database reset to demo state! Admin credentials: username='admin', password='Test1234!'", "success")
+        return redirect("/")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error resetting database: {str(e)}", "danger")
+        return redirect("/")
 
 
 

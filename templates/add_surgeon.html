@@ -16,7 +16,7 @@ Christchurch Hospital - Add Surgeons
                     <form class="row g-3" method="post">
                         <div class="form-group col-md-4">
                             <label for="username" class="form-label">Username:</label>
-                            <input autocomplete="off" autofocus type="text" class="form-control" id="username" name="username">
+                            <input autocomplete="off" autofocus type="text" class="form-control" id="username" name="username" value="{{ username or '' }}" required>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="password" class="form-label">Password:</label>
@@ -28,36 +28,36 @@ Christchurch Hospital - Add Surgeons
                         </div>
                         <div class="form-group col-md-6">
                             <label for="first_name" class="form-label">First Name:</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ first_name or '' }}" required>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="last_name" class="form-label">Last Name:</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ last_name or '' }}" required>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="surgeon_code" class="form-label">Surgeon Code:</label>
-                            <input type="text" class="form-control" id="surgeon_code" name="surgeon_code" required>
+                            <input type="text" class="form-control" id="surgeon_code" name="surgeon_code" value="{{ surgeon_code or '' }}" required>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="gender" class="form-label">Gender:</label>
                             <select class="form-control" id="gender" name="gender" required>
-                                <option value="">Select</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
+                                <option value="" {% if not gender %}selected{% endif %}>Select</option>
+                                <option value="male" {% if gender == 'male' %}selected{% endif %}>Male</option>
+                                <option value="female" {% if gender == 'female' %}selected{% endif %}>Female</option>
+                                <option value="other" {% if gender == 'other' %}selected{% endif %}>Other</option>
                             </select>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="date_of_birth" class="form-label">Date of Birth:</label>
-                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ date_of_birth or '' }}" required>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="specialty" class="form-label">Specialty:</label>
-                            <input type="text" class="form-control" id="specialty" name="specialty">
+                            <input type="text" class="form-control" id="specialty" name="specialty" value="{{ specialty or '' }}" required>
                         </div>
                         <div class="form-group col-md-6">
                             <label for="contact_info" class="form-label">Contact Info:</label>
-                            <input placeholder="Enter contact info: phone number or email" type="text" class="form-control" id="contact_info" name="contact_info" required>
+                            <input placeholder="Enter contact info: phone number or email" type="text" class="form-control" id="contact_info" name="contact_info" value="{{ contact_info or '' }}" required>
                         </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary">Add Surgeon</button>
