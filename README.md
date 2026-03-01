@@ -4,7 +4,7 @@ A comprehensive web-based hospital management system built with Flask for CS50's
 
 ## Video Demo
 
-[Link to YouTube video - to be added]
+[Watch on YouTube](https://youtu.be/KbvCdUr2LIg)
 
 ## Description
 
@@ -15,7 +15,7 @@ Built by a neurosurgeon to demonstrate practical software development skills acq
 
 ## Live Demo
 
-🌐 **[Your Deployed URL Here]**
+🌐 **https://cs50-hospital-management-final-project.onrender.com**
 
 ### Quick Start Guide
 
@@ -130,10 +130,13 @@ flask run
 
 Open your browser and navigate to http://127.0.0.1:5000
 
-## Usage
+### Demo Credentials
 
-Password: Test1234!
-User workflow:
+**Admin Account:**
+- Username: `admin`
+- Password: `Test1234!`
+
+### User Workflow:
 
 ### As an Admin:
 
@@ -170,13 +173,17 @@ Change password for security
 The password reset feature generates secure tokens that expire after 1 hour. For demonstration purposes, the reset link is displayed on-screen. In a production environment, this would be sent via email.
 
 #### Testing
-- Run the complete test suite: 
-pytest test_app.py -v
+**Run the complete test suite:**
+```bash
+pytest [test_app.py](http://_vscodecontentref_/0) -v
+```
 
-- Run specific test categories: 
-pytest test_app.py -k "password" -v     # Password tests
-pytest test_app.py -k "patient" -v      # Patient management tests
-pytest test_app.py -k "appointment" -v  # Appointment tests
+**Run specific test categories:** 
+```bash
+pytest [test_app.py](http://_vscodecontentref_/1) -k "password" -v     # Password tests
+pytest [test_app.py](http://_vscodecontentref_/2) -k "appointment" -v  # Appointment tests
+pytest [test_app.py](http://_vscodecontentref_/3) -k "surgery" -v      # Surgery tests
+```
 
 ## Project structure
 
@@ -196,29 +203,29 @@ CS50-final-project/
 
 ## Database Schema
 
-Main Tables:
+### Main Tables:
 
-admin - System administrators
-surgeon - Medical staff with surgical privileges
-secretary - Administrative staff
-patient - Patient records and credentials
-appointment - Scheduled appointments
-admission - Hospital admissions/discharges
-surgery - Surgical procedures and outcomes
-diagnosis - Patient diagnoses
-complication - Surgery-related complications
-audit_log - System activity tracking
-password_reset_token - Secure password reset tokens
+- `admin` - System administrators
+- `surgeon` - Medical staff with surgical privileges
+- `secretary` - Administrative staff
+- `patient` - Patient records and credentials
+- `appointment` - Scheduled appointments
+- `admission` - Hospital admissions/discharges
+- `surgery` - Surgical procedures and outcomes
+- `diagnosis` - Patient diagnoses
+- `complication` - Surgery-related complications
+- `audit_log` - System activity tracking
+- `password_reset_token` - Secure password reset tokens
 
 ## Security Features
 
-Password hashing with PBKDF2-SHA256 and salt
-Role-based access control with custom decorators
-Server-side session management
-SQL injection protection via SQLAlchemy ORM
-Token-based password reset with expiration
-Comprehensive audit logging
-Input validation and error handling
+- Password hashing with PBKDF2-SHA256 and salt
+- Role-based access control with custom decorators
+- Server-side session management
+- SQL injection protection via SQLAlchemy ORM
+- Token-based password reset with expiration
+- Comprehensive audit logging
+- Input validation and error handling
 
 
 ## Design Decisions
@@ -257,10 +264,10 @@ GitHub: @claudiodeto
 
 ## Acknowledgments
 
-Harvard's CS50 course and staff
-Flask and SQLAlchemy documentation
-Bootstrap framework
-GitHub Copilot for development assistance
+- Harvard's CS50 course and staff
+- Flask and SQLAlchemy documentation
+- Bootstrap framework
+- GitHub Copilot for development assistance
 
 ## License
 
